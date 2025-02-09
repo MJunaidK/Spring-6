@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest
 class CustomerControllerIT {
+
     @Autowired
     CustomerRepository customerRepository;
 
@@ -76,7 +77,7 @@ class CustomerControllerIT {
     @Rollback
     @Transactional
     @Test
-    void saveNewCustomerTest() {
+    void saveNewBeerTest() {
         CustomerDTO customerDTO = CustomerDTO.builder()
                 .name("TEST")
                 .build();
@@ -123,5 +124,4 @@ class CustomerControllerIT {
         CustomerDTO customerDTO = customerController.getCustomerById(customer.getId());
         assertThat(customerDTO).isNotNull();
     }
-
 }
