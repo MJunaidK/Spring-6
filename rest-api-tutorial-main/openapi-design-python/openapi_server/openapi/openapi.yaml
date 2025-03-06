@@ -1,0 +1,430 @@
+openapi: 3.0.3
+info:
+  description: |
+    This a sample specification part of a YT tutorial showcasing how to design a RESTful API contract using OpenAPI.
+
+    We are going to create an API to manage products with the the following operations:
+    * List all Products
+    * Create a Product
+    * Get Product details
+    * Update Product
+    * Delete Product
+
+    We will cover also the following topics:
+    * Result pagination
+    * Security (Auth'n / Auth'z)
+
+    We will use a simple **Product** resource representation with the following properties:
+    * ID
+    * Name
+    * Price
+    * Description (optional)
+    * Last updated date-time
+  title: Products API
+  version: v1
+servers:
+- description: Production environment
+  url: https://marcolenzo.eu/products-api/v1
+- description: Localhost environment
+  url: http://localhost:8080/products-api/v1
+tags:
+- description: Product management
+  externalDocs:
+    url: https://marcolenzo.eu/docs/products
+  name: Products
+paths:
+  /products:
+    get:
+      description: Use this endpoint to browse all products in the catalog
+      operationId: get_all_products
+      parameters:
+      - explode: true
+        in: query
+        name: offset
+        required: false
+        schema:
+          default: 0
+          type: integer
+        style: form
+      - explode: true
+        in: query
+        name: limit
+        required: false
+        schema:
+          default: 5
+          type: integer
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/getAllProducts_200_response'
+          description: Paginated array of products
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: You do not have enough rights to perform this operation
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unexpected error
+      summary: List products
+      tags:
+      - Products
+      x-openapi-router-controller: openapi_server.controllers.products_controller
+    post:
+      description: Use this endpoint to add a new product to the catalog
+      operationId: create_product
+      requestBody:
+        $ref: '#/components/requestBodies/ProductRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Product Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: You do not have enough rights to perform this operation
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unexpected error
+      summary: Create a product
+      tags:
+      - Products
+      x-openapi-router-controller: openapi_server.controllers.products_controller
+  /products/{id}:
+    delete:
+      description: Use this endpoint to remove a product from the catalog
+      operationId: delete_product
+      parameters:
+      - example: "1001"
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unexpected error
+      summary: Delete product
+      tags:
+      - Products
+      x-openapi-router-controller: openapi_server.controllers.products_controller
+    get:
+      description: Use this endpoint to get details about a specific product
+      operationId: get_product
+      parameters:
+      - example: "1001"
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Product Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unexpected error
+      summary: Get product details
+      tags:
+      - Products
+      x-openapi-router-controller: openapi_server.controllers.products_controller
+    put:
+      description: Use this endpoint to update the product's details
+      operationId: update_product
+      parameters:
+      - example: "1001"
+        explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          type: string
+        style: simple
+      requestBody:
+        $ref: '#/components/requestBodies/ProductRequest'
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+          description: Product Details
+        "401":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: UnauthorizedResponse. Authentication required
+        "403":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: You do not have enough rights to perform this operation
+        "404":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Resource not found
+        "4XX":
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Client error
+        default:
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          description: Unexpected error
+      summary: Update product's details
+      tags:
+      - Products
+      x-openapi-router-controller: openapi_server.controllers.products_controller
+components:
+  requestBodies:
+    ProductRequest:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Product'
+      description: Product Details
+  responses:
+    ProductResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Product'
+      description: Product Details
+    ProductArrayResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/getAllProducts_200_response'
+      description: Paginated array of products
+    ClientErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Client error
+    UnexpectedErrorResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Unexpected error
+    NotFoundResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: Resource not found
+    UnauthorizedResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: UnauthorizedResponse. Authentication required
+    ForbiddenResponse:
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+      description: You do not have enough rights to perform this operation
+  schemas:
+    PaginatedResult:
+      properties:
+        offset:
+          description: Page offset
+          example: 10
+          title: offset
+          type: integer
+        limit:
+          description: Page size limit
+          example: 5
+          title: limit
+          type: integer
+        total:
+          description: Total number of records across all pages
+          example: 1500
+          title: total
+          type: integer
+        data:
+          items: {}
+          title: data
+          type: array
+      title: PaginatedResult
+      type: object
+    Product:
+      example:
+        price: 4.99
+        name: Coffee
+        description: Arabica coffee beans
+        lastUpdatedOn: 2023-01-01T10:10:10Z
+        id: "1001"
+      properties:
+        id:
+          description: Product identifier
+          example: "1001"
+          readOnly: true
+          title: id
+          type: string
+        name:
+          description: Product name
+          example: Coffee
+          title: name
+          type: string
+        price:
+          description: Product price
+          example: 4.99
+          format: double
+          title: price
+          type: number
+        description:
+          description: Product description
+          example: Arabica coffee beans
+          title: description
+          type: string
+        lastUpdatedOn:
+          description: Timestamp of last product update
+          example: 2023-01-01T10:10:10Z
+          format: date-time
+          readOnly: true
+          title: lastUpdatedOn
+          type: string
+      title: Product
+      type: object
+    ProductArray:
+      items:
+        $ref: '#/components/schemas/Product'
+      title: data
+      type: array
+    Error:
+      properties:
+        message:
+          example: Error details
+          title: message
+          type: string
+      title: Error
+      type: object
+    getAllProducts_200_response_allOf:
+      properties:
+        data:
+          items:
+            $ref: '#/components/schemas/Product'
+          title: data
+          type: array
+      title: getAllProducts_200_response_allOf
+      type: object
+    getAllProducts_200_response:
+      allOf:
+      - $ref: '#/components/schemas/PaginatedResult'
+      - $ref: '#/components/schemas/getAllProducts_200_response_allOf'
+      title: getAllProducts_200_response

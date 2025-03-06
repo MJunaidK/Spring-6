@@ -1,0 +1,282 @@
+openapi: 3.0.3
+info:
+  title: Products API
+  version: v1
+  description: |
+    This a sample specification part of a YT tutorial showcasing how to design a RESTful API contract using OpenAPI.
+    
+    We are going to create an API to manage products with the the following operations:
+    * List all Products
+    * Create a Product
+    * Get Product details
+    * Update Product
+    * Delete Product
+    
+    We will cover also the following topics:
+    * Result pagination
+    * Security (Auth'n / Auth'z)
+    
+    We will use a simple **Product** resource representation with the following properties:
+    * ID
+    * Name
+    * Price
+    * Description (optional)
+    * Last updated date-time
+
+servers:
+  - url: https://marcolenzo.eu/products-api/v1
+    description: Production environment
+  - url: http://localhost:8080/products-api/v1
+    description: Localhost environment
+
+tags:
+  - name: Products
+    description: Product management
+    externalDocs:
+      url: https://marcolenzo.eu/docs/products
+
+paths:
+  /products:
+    get:
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 5
+      tags:
+        - Products
+      summary: List products
+      description: Use this endpoint to browse all products in the catalog
+      operationId: getAllProducts
+      responses:
+        '200':
+          $ref: "#/components/responses/ProductArrayResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+    post:
+      tags:
+        - Products
+      summary: Create a product
+      description: Use this endpoint to add a new product to the catalog
+      operationId: createProduct
+      requestBody:
+        $ref: "#/components/requestBodies/ProductRequest"
+      responses:
+        '200':
+          $ref: "#/components/responses/ProductResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+  /products/{id}:
+    parameters:
+      - name: id
+        in: path
+        schema:
+          type: string
+        required: true
+        example: "1001"
+    get:
+      tags:
+        - Products
+      summary: Get product details
+      description: Use this endpoint to get details about a specific product
+      operationId: getProduct
+      responses:
+        '200':
+          $ref: "#/components/responses/ProductResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse" 
+    
+    put:
+      tags:
+        - Products
+      summary: Update product's details
+      description: Use this endpoint to update the product's details
+      operationId: updateProduct
+      requestBody:
+        $ref: "#/components/requestBodies/ProductRequest"
+      responses:
+        '200':
+          $ref: "#/components/responses/ProductResponse"
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+    
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      description: Use this endpoint to remove a product from the catalog
+      operationId: deleteProduct
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: "#/components/responses/UnauthorizedResponse"
+        '403':
+          $ref: "#/components/responses/ForbiddenResponse"
+        '404':
+          $ref: "#/components/responses/NotFoundResponse"
+        '4XX':
+          $ref: "#/components/responses/ClientErrorResponse"
+        default:
+          $ref: "#/components/responses/UnexpectedErrorResponse"
+
+components:
+
+  requestBodies:
+    ProductRequest:
+      description: Product Details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+
+  responses:
+    ProductResponse:
+      description: Product Details
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Product"
+
+    ProductArrayResponse:
+      description: Paginated array of products
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: "#/components/schemas/PaginatedResult"
+              - type: object
+                properties:
+                  data:
+                    $ref: "#/components/schemas/ProductArray"
+
+    ClientErrorResponse:
+      description: Client error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    UnexpectedErrorResponse:
+      description: Unexpected error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+    NotFoundResponse:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    UnauthorizedResponse:
+      description: UnauthorizedResponse. Authentication required
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    
+    ForbiddenResponse:
+      description: You do not have enough rights to perform this operation
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    PaginatedResult:
+      type: object
+      properties:
+        offset: 
+          type: integer
+          description: Page offset
+          example: 10
+        limit:
+          type: integer
+          description: Page size limit
+          example: 5
+        total:
+          type: integer
+          description: Total number of records across all pages
+          example: 1500
+        data:
+          type: array
+          items: {}
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Product identifier
+          example: "1001"
+          readOnly: true
+        name:
+          type: string
+          description: Product name
+          example: Coffee
+        price:
+          type: number
+          description: Product price
+          format: double
+          example: 4.99
+        description:
+          type: string
+          description: Product description
+          example: Arabica coffee beans
+        lastUpdatedOn:
+          type: string
+          description: Timestamp of last product update
+          format: date-time
+          example: 2023-01-01T10:10:10Z
+          readOnly: true
+    
+    ProductArray:
+      type: array
+      items:
+        $ref: "#/components/schemas/Product"
+
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Error details"
